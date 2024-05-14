@@ -5,6 +5,8 @@ Overview
 --------
 HueController is a macOS menu bar application for controlling Philips Hue lights. It provides a simple interface for managing lights and rooms directly from the menu bar.
 
+![Alt text](/screenshots/example_usage.png?raw=true)
+
 Features
 --------
 - Automatic detection of Philips Hue Bridge devices on the local network.
@@ -14,6 +16,7 @@ Features
 
 Installation
 ------------
+As a python script:
 1. Clone or download the repository to your local machine.
 2. Install the necessary Python libraries using pip:
 
@@ -27,6 +30,16 @@ Installation
     python main.py
     ```
 
+As a standalone application:
+1. Install Py2App
+2. Build the app using the setup.py file
+
+    ```
+    python setup.py py2app
+    ```
+3. Launch application by double-clicking or via Terminal
+4. (Optional) Add application to your Login Items to launch on system startup
+
 Usage
 -----
 - Launch the application.
@@ -35,17 +48,12 @@ Usage
 - If successful, the connection status will be displayed in the menu bar.
 - Control lights and rooms directly from the menu bar.
 
-Dependencies
-------------
-- rumps: Library for macOS menu bar applications.
-- phue: Library for Philips Hue Bridge communication.
-- zeroconf: Library for service discovery on local networks.
-
 Credits
 -------
 - rumps: https://github.com/jaredks/rumps
 - phue: https://github.com/studioimaginaire/phue
 - zeroconf: https://github.com/jstasiak/python-zeroconf
+- hass-hue-icons: https://github.com/arallsopp/hass-hue-icons
 
 License
 -------
