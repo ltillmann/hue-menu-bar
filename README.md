@@ -32,13 +32,13 @@ As a python script:
 
 As a standalone application:
 1. Install Py2App
-2. Build the app using the setup.py file
+2. Build the app using the preconfigured setup.py file
 
     ```
     python setup.py py2app
     ```
 3. Launch application by double-clicking or via Terminal
-4. (Optional) Add application to your Login Items to launch on system startup
+4. (Optional) Add application to your applications folder and Login Items to launch on system startup
 
 Usage
 -----
