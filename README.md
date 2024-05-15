@@ -1,9 +1,9 @@
-HueController macOS Menu Bar App
+Hue Controller macOSX Menu Bar App
 =================================
 
 Overview
 --------
-HueController is a macOS menu bar application for controlling Philips Hue lights. It provides a simple interface for managing lights and rooms directly from the menu bar.
+Hue Controller is a macOS X menu bar application for controlling Philips Hue lights. It provides a minimal interface for managing lights and rooms directly from the menu bar.
 
 ![Alt text](/screenshots/example_usage.png?raw=true)
 
@@ -12,7 +12,7 @@ Features
 - Automatic detection of Philips Hue Bridge devices on the local network.
 - Displays connection status to the Hue Bridge in the menu bar.
 - Allows users to turn lights and rooms on or off.
-- Persistence: Remembers the IP address of the last connected Hue Bridge.
+- Persistence: Remembers the IP address of the last connected Hue Bridge and autoconnects.
 
 Installation
 ------------
@@ -37,15 +37,15 @@ As a standalone application:
     ```
     python setup.py py2app
     ```
-3. Launch application by double-clicking or via Terminal
-4. (Optional) Add application to your applications folder and Login Items to launch on system startup
+3. Launch application by double-clicking app or open via Terminal
+4. (Optional) Add application to Login Items to launch on system startup
 
 Usage
 -----
-- Launch the application.
-- On first start, the local machine has to be authenticated to Hue Bridge by pushing the Link button before connecting.
-- It will attempt to connect to the Philips Hue Bridge automatically.
-- If successful, the connection status will be displayed in the menu bar.
+- Launch application/run script.
+- On first start, the local machine has to be authenticated to Hue Bridge by pushing the Link button before clicking connect.
+- Otherwise, it will attempt to connect to the Philips Hue Bridge automatically.
+- If successful, the connection status adn your lights/rooms will be displayed in the menu bar.
 - Control lights and rooms directly from the menu bar.
 
 Credits

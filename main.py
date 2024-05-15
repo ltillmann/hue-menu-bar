@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-## imports
+### imports
 import rumps
 from phue import Bridge, PhueRegistrationException
 from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
@@ -8,7 +8,8 @@ import time
 import socket
 import os
 
-## helper functions
+
+### helper functions
 def get_path(filename: str):
     # Get the path of the current Python script
     current_file_path = os.path.dirname(__file__)
@@ -17,9 +18,8 @@ def get_path(filename: str):
     return file_path
 
 
-       
 
-## HueBridge multicast DNS service discovery
+### HueBridge multicast DNS service discovery
 class HueBridgeListener(ServiceListener):
 
     def update_service(self, zc: Zeroconf, type_: str, name: str) -> None:
@@ -36,7 +36,7 @@ class HueBridgeListener(ServiceListener):
             self.bridge_ip = socket.inet_ntoa(info.addresses[0]) 
 
 
-## HueController App
+### HueController rumps App
 class HueControllerApp(rumps.App):
     def __init__(self, _):
         super(HueControllerApp, self).__init__("")
@@ -188,7 +188,6 @@ class HueControllerApp(rumps.App):
         self.build_lights_menu()
 
 
-
     ## autodetects hue bridge IP and devices
     def detect_hue_bridge(self):
         # detect bridge in local network via multicast DNS service discovery
@@ -213,14 +212,10 @@ class HueControllerApp(rumps.App):
             return False
             
                 
-            
-
-    def first_connect(self, _):
+    def first_connect(self):
         # try to detect hue bridge ip on local network
-        return_value = self.detect_hue_bridge()
-
         # when hue bridge ip was detected
-        if return_value is True:
+        if self.detect_hue_bridge() is True:
             rumps.notification("Success", "", f"Hue Bridge found at {self.hue_bridge_ip}", icon="icons/bridge-v2.svg")
             time.sleep(2)
             # try to connect
@@ -283,6 +278,6 @@ class HueControllerApp(rumps.App):
             
 
 
-## run
+### run
 if __name__ == "__main__":
     HueControllerApp("HueController").run()
