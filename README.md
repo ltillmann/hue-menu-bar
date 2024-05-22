@@ -1,4 +1,4 @@
-Hue Controller macOSX Menu Bar App
+Hue Controller macOS X Menu Bar Application
 =================================
 
 Overview
