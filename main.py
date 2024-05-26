@@ -7,6 +7,7 @@ from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
 import time
 import socket
 import os
+import subprocess
 
 
 ### helper functions
@@ -16,6 +17,16 @@ def get_path(filename: str):
     file_path = os.path.join(current_file_path, filename)
 
     return file_path
+
+
+def is_darkmode():
+    command = "defaults read -g AppleInterfaceStyle"
+    result = subprocess.run(command, shell=True, capture_output=True, text=True)
+
+    if result.stdout.rstrip() == "Dark":
+        return "Dark"
+    else:
+        return "Light"
 
 
 
@@ -36,6 +47,9 @@ class HueBridgeListener(ServiceListener):
             self.bridge_ip = socket.inet_ntoa(info.addresses[0]) 
 
 
+            
+
+
 ### HueController rumps App
 class HueControllerApp(rumps.App):
     def __init__(self, _):
@@ -43,9 +57,16 @@ class HueControllerApp(rumps.App):
         rumps.debug_mode(True)
 
         self.quit_button = None
-        #self.listoflights = []
-        #self.listofrooms = []
-        self.parent_titles = {}  # Dictionary to map submenu to parent's title
+
+        # init empty lights and rooms lists 
+        self.listoflights = []
+        self.listofrooms = []
+        
+        # dictionary to map submenu to parent's title
+        self.parent_titles = {} 
+        
+        # icon display on menubar, automatically displays the icon black or white depending on menubar theme settings
+        self.template = True
         self.icon = "icons/white.png"
 
         self.connection_status = rumps.MenuItem(icon="icons/bridge-v2-off.svg", title="Disconnected")
@@ -63,14 +84,18 @@ class HueControllerApp(rumps.App):
         # when no ip yet
         except FileNotFoundError:
             pass
-        
+
+ 
+    def is_new_network(self):
+        pass
+
 
     def test_internet_connection(self, bridge_ip, timeout):
         start_time = time.time()
         while time.time() - start_time < timeout:
             try:
                 with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as s:
-                    s.connect((bridge_ip, 80))  # bridge ip
+                    s.connect((bridge_ip, 80))  # bridge ip and default port 80
                     return True
             except Exception:
                 continue
@@ -90,7 +115,7 @@ class HueControllerApp(rumps.App):
     
     
     def build_lights_menu(self):
-        # when lights registerd to bridge
+        # when lights registered to bridge
         if self.listoflights:
             self.lights_menu = rumps.MenuItem(title="Lights", icon="icons/lights.svg")
 
@@ -169,6 +194,7 @@ class HueControllerApp(rumps.App):
         self.build_lights_menu()
 
 
+
     def on_off_rooms(self, sender):
         # Find the parent title and id of the sender
         parent_roomname = sender.parent_room_name
@@ -201,7 +227,7 @@ class HueControllerApp(rumps.App):
         # close instance
         zeroconf_instance.close()
 
-        # 
+        # try to detect bridge on local network and store ip
         try:
             self.hue_bridge_ip = listener.bridge_ip
             self.store_data()
@@ -212,7 +238,7 @@ class HueControllerApp(rumps.App):
             return False
             
                 
-    def first_connect(self):
+    def first_connect(self, _):
         # try to detect hue bridge ip on local network
         # when hue bridge ip was detected
         if self.detect_hue_bridge() is True:
@@ -222,8 +248,8 @@ class HueControllerApp(rumps.App):
             self.connect_hue_bridge()
         # if no bridge detected
         else:
-            print("No Hue Bridge found on local network.")
-            rumps.notification("Error", "", "No Hue Bridge found on local network.")
+            print("No Hue Bridge found on local network")
+            rumps.notification("Error", "", "No Hue Bridge found on local network", icon="icons/bridge-v2-off.svg")
 
 
     def autoconnect(self):     
@@ -266,7 +292,7 @@ class HueControllerApp(rumps.App):
             self.connection_status.icon = "icons/bridge-v2.svg"
             self.connection_status.title = " Bridge Connected"
             
-            rumps.notification("", "", "Hue Bridge Connected.", icon="icons/bridge-v2.svg")
+            rumps.notification("", "", "Hue Bridge Connected", icon="icons/bridge-v2.svg")
 
         # if device wasn't authenticated to bridge yet
         except PhueRegistrationException as e:
