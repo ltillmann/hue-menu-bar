@@ -19,16 +19,6 @@ def get_path(filename: str):
     return file_path
 
 
-def is_darkmode():
-    command = "defaults read -g AppleInterfaceStyle"
-    result = subprocess.run(command, shell=True, capture_output=True, text=True)
-
-    if result.stdout.rstrip() == "Dark":
-        return "Dark"
-    else:
-        return "Light"
-
-
 
 ### HueBridge multicast DNS service discovery
 class HueBridgeListener(ServiceListener):
@@ -48,8 +38,6 @@ class HueBridgeListener(ServiceListener):
 
 
             
-
-
 ### HueController rumps App
 class HueControllerApp(rumps.App):
     def __init__(self, _):
