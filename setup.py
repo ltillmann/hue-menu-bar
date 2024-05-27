@@ -8,7 +8,7 @@ def get_path(filename: str):
 
     return file_path
 
-APP = ['main.py']
+APP = ['app.py']
 DATA_FILES = [('icons', [get_path('icons/white.png'), get_path('icons/button.svg'), get_path('icons/bridge-v2.svg'), get_path('icons/bridge-v2-off.svg'), get_path('icons/lights.svg'), get_path('icons/rooms.svg')])]
 OPTIONS = {
     
