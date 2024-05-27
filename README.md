@@ -12,7 +12,7 @@ Features
 - Automatic detection of Philips Hue Bridge devices on the local network.
 - Displays connection status to the Hue Bridge in the menu bar.
 - Allows users to turn lights and rooms on or off.
-- Persistence: Remembers the IP address of the last connected Hue Bridge and autoconnects.
+- Remembers the IP address of the last connected Hue Bridge and autoconnects on startup.
 
 Installation
 ------------
@@ -24,10 +24,10 @@ As a python script:
     pip install -r requirements.txt
     ```
 
-3. Run the `main.py` script:
+3. Run the `app.py` script:
 
     ```
-    python main.py
+    python3 app.py
     ```
 
 As a standalone application:
@@ -35,17 +35,17 @@ As a standalone application:
 2. Build the app using the preconfigured setup.py file
 
     ```
-    python setup.py py2app
+    python3 setup.py py2app
     ```
-3. Launch application by double-clicking app or open via Terminal
-4. (Optional) Add application to Login Items to launch on system startup
+3. Launch application by double-clicking app or open via Terminal.
+4. (Optional) Move application to application folder and add to Login Items to launch on system startup.
 
 Usage
 -----
 - Launch application/run script.
 - On first start, the local machine has to be authenticated to Hue Bridge by pushing the Link button before clicking connect.
 - Otherwise, it will attempt to connect to the Philips Hue Bridge automatically.
-- If successful, the connection status adn your lights/rooms will be displayed in the menu bar.
+- If successful, the connection status and your lights/rooms will be displayed in the menu bar.
 - Control lights and rooms directly from the menu bar.
 
 Credits
