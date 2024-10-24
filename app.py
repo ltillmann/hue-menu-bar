@@ -7,16 +7,8 @@ from zeroconf import ServiceBrowser, ServiceListener, Zeroconf
 import time
 import socket
 import os
-import subprocess
+import threading
 
-
-### helper functions
-def get_path(filename: str):
-    # Get the path of the current Python script
-    current_file_path = os.path.dirname(__file__)
-    file_path = os.path.join(current_file_path, filename)
-
-    return file_path
 
 
 
@@ -40,7 +32,7 @@ class HueBridgeListener(ServiceListener):
             
 ### HueController rumps App
 class HueControllerApp(rumps.App):
-    def __init__(self, _):
+    def __init__(self):
         super(HueControllerApp, self).__init__("")
         rumps.debug_mode(True)
 
@@ -73,9 +65,27 @@ class HueControllerApp(rumps.App):
         except FileNotFoundError:
             pass
 
- 
-    def is_new_network(self):
-        pass
+        # Call the refresh_menu function in the constructor to start refreshing
+        self.refresh_menu()
+
+
+    @staticmethod
+    def get_path(filename: str):
+        # Get the path of the current Python script
+        current_file_path = os.path.dirname(__file__)
+        file_path = os.path.join(current_file_path, filename)
+
+        return file_path
+    
+
+    @staticmethod
+    def store_data(hue_bridge_ip):
+        p = os.path.join(os.getenv("HOME"), ".huemenubar")
+        if not os.path.exists(p):
+            os.makedirs(p)
+        with open(os.path.join(p, "bridge_ip.txt"), "w") as output_file:
+            output_file.write(hue_bridge_ip)
+            print("Write IP to file")
 
 
     def test_internet_connection(self, bridge_ip, timeout):
@@ -89,13 +99,6 @@ class HueControllerApp(rumps.App):
                 continue
         return False
             
-    
-    def store_data(self):
-        p = os.path.join(os.getenv("HOME"), ".huemenubar")
-        if not os.path.exists(p):
-            os.makedirs(p)
-        with open(os.path.join(p, "bridge_ip.txt"), "w") as output_file:
-            output_file.write(self.hue_bridge_ip)
 
 
     def build_init_menu(self):
@@ -161,7 +164,7 @@ class HueControllerApp(rumps.App):
         
         elif self.listoflights and self.listofrooms:
             self.menu = [self.connection_status, None, self.lights_menu, self.rooms_menu, None, self.quit]
-
+        
 
 
     def on_off_lights(self, sender):
@@ -210,7 +213,7 @@ class HueControllerApp(rumps.App):
         ServiceBrowser(zeroconf_instance, "_hue._tcp.local.", listener)
 
         # Wait for a few seconds to allow time for discovery
-        time.sleep(1)
+        time.sleep(2)
 
         # close instance
         zeroconf_instance.close()
@@ -218,15 +221,14 @@ class HueControllerApp(rumps.App):
         # try to detect bridge on local network and store ip
         try:
             self.hue_bridge_ip = listener.bridge_ip
-            self.store_data()
+            self.store_data(self.hue_bridge_ip)
             return True
         
         except Exception as e:
             print(e)
             return False
             
-                
-    def first_connect(self, _):
+    def first_connect(self):
         # try to detect hue bridge ip on local network
         # when hue bridge ip was detected
         if self.detect_hue_bridge() is True:
@@ -278,7 +280,7 @@ class HueControllerApp(rumps.App):
             self.menu.clear()
             self.build_lights_menu()
             self.connection_status.icon = "icons/bridge-v2.svg"
-            self.connection_status.title = " Bridge Connected"
+            self.connection_status.title = "Bridge Connected"
             
             rumps.notification("", "", "Hue Bridge Connected", icon="icons/bridge-v2.svg")
 
@@ -289,9 +291,26 @@ class HueControllerApp(rumps.App):
         # generic exception
         except Exception as e:
             rumps.alert(f"Connection could not be established!\n\nException: {e}", icon_path="icons/bridge-v2-off.svg")
-            
+
+
+    # timer function to refresh lights menu every x seconds   
+    def refresh_menu(self):
+        x = 10  # Interval in seconds
+
+        # Use a background thread to avoid blocking the main loop
+        def refresh():
+            while True:
+                # Delay for the defined interval
+                time.sleep(x)
+
+                # Refresh menu
+                self.menu.clear()
+                self.build_lights_menu()
+
+        # Start the background thread for refreshing the menu
+        threading.Thread(target=refresh, daemon=True).start()
 
 
 ### run
 if __name__ == "__main__":
-    HueControllerApp("HueController").run()
+    HueControllerApp().run()
