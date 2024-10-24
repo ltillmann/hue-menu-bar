@@ -12,7 +12,8 @@ Features
 - Automatic detection of Philips Hue Bridge devices on the local network.
 - Displays connection status to the Hue Bridge in the menu bar.
 - Allows users to turn lights and rooms on or off.
-- Remembers the IP address of the last connected Hue Bridge and autoconnects on startup.
+- Remembers the IP address of the last connected Hue Bridge and auto-connects on reboot.
+- Multi-device light status synchronization
 
 Installation
 ------------
