@@ -37,6 +37,7 @@ class HueControllerApp(rumps.App):
         rumps.debug_mode(True)
 
         self.quit_button = None
+        self.is_connected = False
 
         # init empty lights and rooms lists 
         self.listoflights = []
@@ -66,8 +67,17 @@ class HueControllerApp(rumps.App):
             pass
 
         # Call the refresh_menu function in the constructor to start refreshing
-        self.refresh_menu()
+        #self.refresh_menu()
 
+        # Start a timer that calls self.refresh_menu periodically on the main thread
+        @rumps.timer(5)
+        def refresh_menu(sender):
+            # Refresh menu
+            if self.is_connected == True:
+                self.menu.clear()
+                self.build_lights_menu()
+            else:
+                pass
 
     @staticmethod
     def get_path(filename: str):
@@ -267,7 +277,8 @@ class HueControllerApp(rumps.App):
             # init bridge API connection uisng Bridge ip
             self.hue_bridge = Bridge(self.hue_bridge_ip)
             self.hue_bridge.connect()
-
+            
+            self.is_connected = True
 
             # get list of light names registered on bridge
             self.listoflights = list(self.hue_bridge.get_light_objects(mode='name').keys())
@@ -282,6 +293,7 @@ class HueControllerApp(rumps.App):
             self.connection_status.icon = "icons/bridge-v2.svg"
             self.connection_status.title = "Bridge Connected"
             
+
             rumps.notification("", "", "Hue Bridge Connected", icon="icons/bridge-v2.svg")
 
         # if device wasn't authenticated to bridge yet
@@ -292,23 +304,6 @@ class HueControllerApp(rumps.App):
         except Exception as e:
             rumps.alert(f"Connection could not be established!\n\nException: {e}", icon_path="icons/bridge-v2-off.svg")
 
-
-    # timer function to refresh lights menu every x seconds   
-    def refresh_menu(self):
-        x = 10  # Interval in seconds
-
-        # Use a background thread to avoid blocking the main loop
-        def refresh():
-            while True:
-                # Delay for the defined interval
-                time.sleep(x)
-
-                # Refresh menu
-                self.menu.clear()
-                self.build_lights_menu()
-
-        # Start the background thread for refreshing the menu
-        threading.Thread(target=refresh, daemon=True).start()
 
 
 ### run
