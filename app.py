@@ -137,7 +137,6 @@ class HueControllerApp(rumps.App):
         else:
             rumps.notification("Error", "", "No Hue Bridge found on local network. Check internet/VPN settings and make sure Bridge is powered on.", icon="icons/bridge-v2-off.svg")
     
-
     def get_lights(self):
         # get list of light names registered on bridge
         self.listoflights = list(self.hue_bridge.get_light_objects(mode='name').keys())
@@ -150,7 +149,7 @@ class HueControllerApp(rumps.App):
     def connect_hue_bridge(self):
         # try to connect to bridge
         try:
-            # init bridge API connection uisng Bridge ip
+            # init bridge API connection using local Bridge IP
             self.hue_bridge = Bridge(self.hue_bridge_ip)
             self.hue_bridge.connect()
             self.is_connected = True
@@ -224,6 +223,9 @@ class HueControllerApp(rumps.App):
             pass
     
     def update_lights_menu(self):
+        # refresh listoflights
+        self.get_lights()
+      
         for light_name in self.listoflights:
             # check if light is already on, returns true/false
             is_light_on = self.hue_bridge.get_light(light_name, 'on')
@@ -231,6 +233,9 @@ class HueControllerApp(rumps.App):
             self.on_off_lights_button.title = button_title
 
     def update_rooms_menu(self):
+        # refresh listofrooms
+        self.get_rooms()
+        
         for idx, room_name in enumerate(self.listofrooms, start=1):
             # check if room is already on, returns true/false
             is_room_on = self.hue_bridge.get_group(idx, 'on')
