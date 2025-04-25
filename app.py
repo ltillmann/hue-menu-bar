@@ -28,9 +28,9 @@ class HueControllerApp(rumps.App):
 
         self.quit_button = None
         self.is_connected = False
-        # init empty lights and rooms lists 
+        # init empty lights list and rooms tuple list
         self.listoflights = []
-        self.listofrooms = []
+        self.rooms = []
         # dictionary to map submenu to parent's title
         self.parent_titles = {} 
         # icon display on menubar, automatically displays the icon black or white depending on menubar theme settings
@@ -40,6 +40,8 @@ class HueControllerApp(rumps.App):
         self.connection_status = rumps.MenuItem(icon="icons/bridge-v2-off.svg", title="Disconnected")
         self.quit = rumps.MenuItem(title='Quit', callback=rumps.quit_application)
         self.link = rumps.MenuItem(title="Connect Hue Bridge", callback = self.first_connect)
+        self.room_buttons = {}
+        self.light_buttons = {}
 
         # build menu
         self.build_init_menu()
@@ -140,10 +142,10 @@ class HueControllerApp(rumps.App):
     def get_lights(self):
         # get list of light names registered on bridge
         self.listoflights = list(self.hue_bridge.get_light_objects(mode='name').keys())
-        
+
     def get_rooms(self):
-        # get list of room name registered to bridge
-        self.listofrooms = [room['name'] for room in self.hue_bridge.get_group().values()]
+        groups = self.hue_bridge.get_group()
+        self.rooms = [(group_id, group) for group_id, group in groups.items() if 'name' in group]
          
     # connect to Hue Bridge
     def connect_hue_bridge(self):
@@ -172,6 +174,7 @@ class HueControllerApp(rumps.App):
         # generic exception
         except Exception as e:
             rumps.alert(f"Connection could not be established!\n\nException: {e}", icon_path="icons/bridge-v2-off.svg")
+
     
     def build_lights_menu(self):
         # when lights registered to bridge
@@ -182,42 +185,36 @@ class HueControllerApp(rumps.App):
                 # check if light is already on, returns true/false
                 is_light_on = self.hue_bridge.get_light(light_name, 'on')
                 # build light menuitem
-                self.light_submenu = rumps.MenuItem(title=light_name)
-                # define button title and create button
                 button_title = "Turn Off" if is_light_on else "Turn On"
-                self.on_off_lights_button = rumps.MenuItem(title=button_title, callback=self.set_lights)
-                # attribute lightname to button
-                self.on_off_lights_button.parent_light = light_name
-                # Add button to light menuitem
-                self.light_submenu.add(self.on_off_lights_button)  
-                # Add light menuitem to lights menu
-                self.lights_menu.add(self.light_submenu)
+                light_submenu = rumps.MenuItem(title=light_name)
+                light_button = rumps.MenuItem(title=button_title, callback=self.set_lights)
+                light_button.parent_light = light_name
+                light_submenu.add(light_button)
+                self.lights_menu.add(light_submenu)
+                self.light_buttons[light_name] = light_button
 
-        if self.listofrooms:
+        if self.rooms:
             self.rooms_menu = rumps.MenuItem(title="Rooms", icon="icons/rooms.svg")
-            # create submenu for each room
-            for idx, room_name in enumerate(self.listofrooms, start=1):
-                # check if room is already on, returns true/false
-                is_room_on = self.hue_bridge.get_group(idx, 'on')
-                # build light menuitem
-                self.room_submenu = rumps.MenuItem(title=room_name)
-                # define button title and create button
+            # create submenu for each room using self.rooms
+            for group_id, group_data in self.rooms:
+                room_name = group_data.get("name")
+                is_room_on = group_data['action']['on']
+
                 button_title = "Turn Off" if is_room_on else "Turn On"
-                self.on_off_rooms_button = rumps.MenuItem(title=button_title, callback=self.set_rooms)
-                # attribute lightname and id to button
-                self.on_off_rooms_button.parent_room_name = room_name
-                self.on_off_rooms_button.parent_room_id = idx
-                # Add button to light menuitem
-                self.room_submenu.add(self.on_off_rooms_button)  
-                # Add light menuitem to lights menu
-                self.rooms_menu.add(self.room_submenu)
+                room_submenu = rumps.MenuItem(title=room_name)
+                room_button = rumps.MenuItem(title=button_title, callback=self.set_rooms)
+                room_button.parent_room_name = room_name
+                room_button.parent_room_id = group_id
+                room_submenu.add(room_button)
+                self.rooms_menu.add(room_submenu)
+                self.room_buttons[group_id] = room_button
 
         # Construct the rooms main menu
-        if self.listoflights and not self.listofrooms:
+        if self.listoflights and not self.rooms:
             self.menu = [self.connection_status, None, self.lights_menu, None, self.quit]
-        elif self.listofrooms and not self.listoflights:
+        elif self.rooms and not self.listoflights:
             self.menu = [self.connection_status, None, self.rooms_menu, None, self.quit]
-        elif self.listoflights and self.listofrooms:
+        elif self.listoflights and self.rooms:
             self.menu = [self.connection_status, None, self.lights_menu, self.rooms_menu, None, self.quit]
         else:
             pass
@@ -230,17 +227,16 @@ class HueControllerApp(rumps.App):
             # check if light is already on, returns true/false
             is_light_on = self.hue_bridge.get_light(light_name, 'on')
             button_title = "Turn Off" if is_light_on else "Turn On"
-            self.on_off_lights_button.title = button_title
+            self.light_buttons[light_name].title = button_title
 
     def update_rooms_menu(self):
-        # refresh listofrooms
+        # refresh self.rooms
         self.get_rooms()
-        
-        for idx, room_name in enumerate(self.listofrooms, start=1):
-            # check if room is already on, returns true/false
-            is_room_on = self.hue_bridge.get_group(idx, 'on')
+        for group_id, group_data in self.rooms:
+            is_room_on = group_data['action']['on']
             button_title = "Turn Off" if is_room_on else "Turn On"
-            self.on_off_rooms_button.title = button_title
+            if group_id in self.room_buttons:
+                self.room_buttons[group_id].title = button_title
 
     def set_lights(self, sender):
         # get parent title of sender (submenu)
@@ -256,12 +252,11 @@ class HueControllerApp(rumps.App):
     def set_rooms(self, sender):
         # get parent title and id of sender
         parent_roomname = sender.parent_room_name
-        parent_roomid = sender.parent_room_id
         callback = sender.title
         if callback == "Turn Off": 
-            self.hue_bridge.set_group(parent_roomid, 'on', False)
+            self.hue_bridge.set_group(parent_roomname, 'on', False)
         else:
-            self.hue_bridge.set_group(parent_roomid, 'on', True)
+            self.hue_bridge.set_group(parent_roomname, 'on', True)
         # refresh menu
         self.update_rooms_menu()
 
